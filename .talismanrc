@@ -1,0 +1,4 @@
+fileignoreconfig:
+- filename: spikes/package-lock.json
+  checksum: 0e3b1518eb52ad11c5aad73b640f1fd43e2c7ab9f78147ba30b4b3368488f66f
+  ignore_detectors: []
