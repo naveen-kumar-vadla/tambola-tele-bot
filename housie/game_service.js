@@ -19,6 +19,12 @@ const signup = async (details) => {
   return db.update(game);
 };
 
+const getRegisteredPlayers = async () => {
+  let game = await db.find();
+  return game.registeredPlayers.map((player, index) => {
+    return `${index+1}. ${player.id} - ${player.name}`;
+  }).join("\n");
+};
 
 // Private
 const generatePlayer = (details) => {
@@ -55,4 +61,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, signup};
+module.exports = {createGame, signup, getRegisteredPlayers};
