@@ -5,7 +5,7 @@ const game = {
   "status": "DRAFTED",
   "name": "Away day 2019",
   "sequence": [],
-  "reveled": [],
+  "revealed": [],
   "winners": {
     "firstLine": "",
     "secondLine": "",

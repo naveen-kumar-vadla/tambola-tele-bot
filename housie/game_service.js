@@ -32,7 +32,42 @@ const confirmPlayer = async (id) => {
   game.players.push(player);
   return db.update(game);
 };
+
+const revealNumber = async () => {
+  let game = await db.find();
+  const number = game.sequence.pop();
+  game.revealed.push(number);
+  await db.update(game);
+  return number;
+};
+
+const mark = async (details) => {
+  let game = await db.find();
+  if(!game.revealed.includes(details.number)) {
+    return false;
+  }
+  const player = game.players.find((p => p.id === details.playerId));
+  const ticket = player.tickets.find(t => t.id = details.ticketId);
+  const marked = markCell(ticket.cells, details.number);
+  await db.update(game);
+  return marked;
+};
+
 // Private
+
+const markCell = (rows, number) => {
+  let marked = false;
+  rows.forEach(row => {
+    row.forEach(cell => {
+      if(cell.number === number) {
+        marked = true;
+        cell.marked = true;
+      }
+    });
+  });
+  return marked;
+};
+
 const generatePlayer = (details) => {
   return {
     id: details.id,
@@ -67,4 +102,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, signup, getRegisteredPlayers, confirmPlayer};
+module.exports = {createGame, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark};
