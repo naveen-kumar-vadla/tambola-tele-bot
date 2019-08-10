@@ -26,6 +26,12 @@ const getRegisteredPlayers = async () => {
   }).join("\n");
 };
 
+const confirmPlayer = async (id) => {
+  let game = await db.find();
+  const player = game.registeredPlayers.find(p => p.id === id);
+  game.players.push(player);
+  return db.update(game);
+};
 // Private
 const generatePlayer = (details) => {
   return {
@@ -61,4 +67,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, signup, getRegisteredPlayers};
+module.exports = {createGame, signup, getRegisteredPlayers, confirmPlayer};
