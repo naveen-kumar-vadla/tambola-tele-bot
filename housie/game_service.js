@@ -92,6 +92,21 @@ const deleteGame = async () => {
   return await db.remove();
 };
 
+const startGameAndGetChatIds = async () => {
+  let game = await db.find();
+  if(game.status === "STARTED") {
+    return {error: "Already started"};
+  }
+  game.status = "STARTED";
+  await db.update(game);
+  return game.players.map(player => player.chatId);
+};
+
+const getAllChatIds = async () => {
+  let game = await db.find();
+  return game.players.map(player => player.chatId);
+};
+
 // Private
 const claimValidations = {
   firstLine: (ticket) => isValidLineClaim(ticket, 1),
@@ -173,4 +188,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, getGame, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, processClaim, getWinners, getConfirmedPlayers, deleteGame};
+module.exports = {createGame, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, processClaim, getWinners, getConfirmedPlayers, deleteGame};

@@ -1,13 +1,16 @@
-const {createGame, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {createGame, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {admins} = require("./config");
 
 const Telegraf = require('telegraf');
+const Telegram = require('telegraf/telegram');
 const Markup = require('telegraf/markup');
 const session = require('telegraf/session');
 const fs = require("fs");
 
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
+const telegram = new Telegram(process.env.BOT_TOKEN);
+
 bot.use(session());
 bot.use((context, next) => {
   const {from, message} = context;
@@ -85,6 +88,17 @@ bot.command('delete', async (context) => {
 bot.command('game', async (context) => {
   const game = Buffer.from(JSON.stringify(await getGame()));
   return context.replyWithDocument({source: game, filename: "game.json"});
+});
+
+bot.command("startGame", async (context) => {
+  const players = await startGameAndGetChatIds();
+  if(players.error) {
+    return context.reply(players.error);
+  }
+  players.forEach((player) => {
+    telegram.sendMessage(player, "Game started now. Get ready for the numbers....")
+  });
+  return context.reply("Informed all players.");
 });
 
 bot.catch((err) => {
