@@ -1,9 +1,10 @@
-const {createGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {createGame, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {admins} = require("./config");
 
 const Telegraf = require('telegraf');
 const Markup = require('telegraf/markup');
 const session = require('telegraf/session');
+const fs = require("fs");
 
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -79,6 +80,11 @@ bot.command('create', async (context) => {
 bot.command('delete', async (context) => {
   const deleted = await deleteGame().catch((err) => onError(context, err));
   return context.reply(deleted.result)
+});
+
+bot.command('game', async (context) => {
+  const game = Buffer.from(JSON.stringify(await getGame()));
+  return context.replyWithDocument({source: game, filename: "game.json"});
 });
 
 bot.catch((err) => {

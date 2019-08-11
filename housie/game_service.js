@@ -10,7 +10,11 @@ const createGame = async () => {
     return {result: "There is already a game. Please delete and create new one."};
   }
   newGame.sequence = tambola.getDrawSequence();
-  return await db.insert(newGame);
+  return db.insert(newGame);
+};
+
+const getGame = () => {
+  return db.find();
 };
 
 const signup = async (details) => {
@@ -169,4 +173,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, processClaim, getWinners, getConfirmedPlayers, deleteGame};
+module.exports = {createGame, getGame, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, processClaim, getWinners, getConfirmedPlayers, deleteGame};
