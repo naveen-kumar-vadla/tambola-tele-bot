@@ -28,14 +28,16 @@ bot.command("signup", async (context) => {
   if(!matchs) {
     return context.reply("Please specify the number of tickets(1 or 2 or 3). Ex: /signup 1");
   }
-  await signup({
+  const signedUp = await signup({
     id: from.id,
     chatId: chat.id,
     name: `${from.first_name} ${from.last_name}`,
     numberOfTickets: matchs[2]
   });
-
-  context.reply(`Signed up successfully. Please contact admin and pay money`);
+  if(signedUp.error) {
+    return context.reply(signedUp.error);
+  }
+  return context.reply(`Signed up successfully. Please contact admin and pay money`);
 });
 
 //Admin

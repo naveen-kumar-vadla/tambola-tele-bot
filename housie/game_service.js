@@ -15,6 +15,9 @@ const createGame = async () => {
 
 const signup = async (details) => {
   let game = await db.find();
+  if(hasAlreadyRegistered(game, details.id)) {
+    return {error: "Already signed up."}
+  }
   game.registeredPlayers.push(generatePlayer(details));
   return db.update(game);
 };
@@ -84,7 +87,6 @@ const deleteGame = async () => {
 };
 
 // Private
-
 const claimValidations = {
   firstLine: (ticket) => isValidLineClaim(ticket, 1),
   secondLine: (ticket) => isValidLineClaim(ticket, 2),
@@ -107,6 +109,10 @@ const isValidLineClaim = (ticket, line) => {
 
 const findPlayer = (game, playerId) => {
   return game.players.find((p => p.id === playerId));
+};
+
+const hasAlreadyRegistered = (game, playerId) => {
+  return game.registeredPlayers.find((p => p.id === playerId));
 };
 
 const findTicket = (game, playerId, ticketId) => {
