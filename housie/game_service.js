@@ -2,13 +2,14 @@ const db = require("./db");
 const fs = require("fs");
 const shortId = require('shortid');
 const tambola = require('tambola-generator');
+const newGame = require("./newGame");
 
-const createGame = async (newGame) => {
+const createGame = async () => {
   let game = await db.find();
   if(game) {
-    console.log("There is already a game. Please delete and create new one.");
-    return;
+    return {result: "There is already a game. Please delete and create new one."};
   }
+  newGame.sequence = tambola.getDrawSequence();
   return await db.insert(newGame);
 };
 
