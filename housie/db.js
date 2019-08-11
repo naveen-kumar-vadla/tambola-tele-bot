@@ -20,6 +20,13 @@ const update = async (game) => {
   return collection.updateOne({_id: game._id}, {$set: game});
 };
 
+const remove = async () => {
+  const db = await connection();
+  const collection = db.collection(COLLECTION_NAME);
+  const game = await find();
+  return collection.deleteOne({_id: game._id});
+};
+
 //private
 const connection = () => {
   return MongoClient.connect(database.url, {useNewUrlParser: true})
@@ -28,4 +35,4 @@ const connection = () => {
 };
 
 
-module.exports = {insert, find, update};
+module.exports = {insert, find, update, remove};

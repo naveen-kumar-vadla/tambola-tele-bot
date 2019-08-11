@@ -78,6 +78,10 @@ const getWinners = async () => {
         `Full housie: ${winners.fullHousie ? winners.fullHousie.name : '-'}`;
 };
 
+const deleteGame = async () => {
+  return await db.remove();
+};
+
 // Private
 
 const claimValidations = {
@@ -156,4 +160,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, processClaim, getWinners, getConfirmedPlayers};
+module.exports = {createGame, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, processClaim, getWinners, getConfirmedPlayers, deleteGame};
