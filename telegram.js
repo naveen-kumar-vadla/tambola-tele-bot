@@ -1,4 +1,4 @@
-const {createGame, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {createGame, getTicket, getTickets, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {admins} = require("./config");
 const numbers = require("./numbers");
 
@@ -8,24 +8,71 @@ const Markup = require('telegraf/markup');
 const session = require('telegraf/session');
 const fs = require("fs");
 
-
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const telegram = new Telegram(process.env.BOT_TOKEN);
 
+
+
+// Private
+const informEveryone = (chatIds, message, options) => {
+  chatIds.forEach((chatId) => {
+    telegram.sendMessage(chatId, message, options);
+  });
+};
+
+const isMarkAction = (data) => {
+  return data.indexOf("mark") === 0;
+};
+
+const convertToTicket = (ticket) => {
+  return Markup.inlineKeyboard(
+      ticket.cells.map(row => {
+        return row.map(cell => {
+          return Markup.callbackButton(getNumber(cell), getAction(cell, ticket))
+        })
+      })
+  ).extra();
+};
+
+const getAction = (cell, ticket) => {
+  if(cell.number == 0 || cell.marked) {
+    return "cellMarked";
+  }
+  return `mark ${JSON.stringify({ticketId: ticket.id, number: cell.number})}`;
+};
+
+const getNumber = (cell) => {
+  if(cell.number == "0") {
+    return "✖️";
+  }
+  return cell.marked ? "✔️" : cell.number;
+};
+
+const convertPlayersToMessage = (players) => {
+  return players.map((player, index) => {
+    return `${index+1}. ${player.id} - ${player.name} - ${player.tickets.length}`;
+  }).join("\n");
+};
+
+const onError = (context, err) => {
+  context.reply("Ooops!!! There is an error. Please contact admin.");
+  console.log("Error handled gracefully", err);
+};
+
+// Private done.
+
+
 bot.use(session());
 bot.use((context, next) => {
-  const {from, message} = context;
-  const log = `${new Date().toString()} ${from.id}-${from.first_name} : ${message.text}`;
+  const {from, message, callbackQuery} = context;
+  const text = message ? message.text : callbackQuery.data;
+  const log = `${new Date().toString()} ${from.id}-${from.first_name} : ${text}`;
   console.log(log);
   return next();
 });
 bot.start((ctx) => ctx.reply('Welcome!'));
 
 //Player
-bot.command("hi", (context) => {
-  return context.reply("Hello");
-});
-
 bot.command("signup", async (context) => {
   const regEx = new RegExp("^(/signup) ([123])\$");
   const {from, chat, message} = context;
@@ -43,6 +90,29 @@ bot.command("signup", async (context) => {
     return context.reply(signedUp.error);
   }
   return context.reply(`Signed up successfully. Please contact admin and pay money`);
+});
+
+bot.command("tickets", async (context) => {
+  const tickets = await getTickets(context.from.id);
+  context.reply("Here your ticket(s) are...");
+  return tickets.forEach((ticket, index) => {
+    telegram.sendMessage(context.chat.id, `Ticket ${index+1}`, convertToTicket(ticket));
+  });
+});
+
+bot.action(isMarkAction, async ({reply, editMessageText, from, callbackQuery, answerCbQuery}) => {
+  const data = JSON.parse(callbackQuery.data.split("mark ")[1]);
+  const result = await mark({...data, playerId: from.id});
+  if(result.error) {
+    return answerCbQuery(result.error);
+  }
+  answerCbQuery("Done!");
+  const ticket = await getTicket(from.id, data.ticketId);
+  return editMessageText(callbackQuery.message.text , convertToTicket(ticket));
+});
+
+bot.action("cellMarked", async ({answerCbQuery}) => {
+  return answerCbQuery("Shhh!");
 });
 
 //Admin
@@ -114,25 +184,6 @@ bot.catch((err) => {
 });
 
 bot.launch();
-
-// Private
-
-const informEveryone = (chatIds, message, options) => {
-  chatIds.forEach((chatId) => {
-    telegram.sendMessage(chatId, message, options);
-  });
-};
-
-const convertPlayersToMessage = (players) => {
-  return players.map((player, index) => {
-    return `${index+1}. ${player.id} - ${player.name} - ${player.tickets.length}`;
-  }).join("\n");
-};
-
-const onError = (context, err) => {
-  context.reply("Ooops!!! There is an error. Please contact admin.");
-  console.log("Error handled gracefully", err);
-};
 
 
 // (async () => {

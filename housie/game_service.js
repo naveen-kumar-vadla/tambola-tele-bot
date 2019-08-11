@@ -66,12 +66,11 @@ const revealNumber = async () => {
 const mark = async (details) => {
   let game = await db.find();
   if(!game.revealed.includes(details.number)) {
-    return false;
+    return {error: "Shhhh!!!! Invalid attempt!!!"};
   }
   const ticket = findTicket(game, details.playerId, details.ticketId);
-  const marked = markCell(ticket.cells, details.number);
-  await db.update(game);
-  return marked;
+  markCell(ticket.cells, details.number);
+  return await db.update(game);
 };
 
 const processClaim = async (details) => {
@@ -113,6 +112,20 @@ const getAllChatIds = async () => {
   return game.players.map(player => player.chatId);
 };
 
+const getTickets = async (playerId) => {
+  let game = await db.find();
+  const player = findPlayer(game, playerId);
+  if(!player) {
+    return {error: "No tickets available for you"};
+  }
+  return player.tickets;
+};
+
+const getTicket = async (playerId, ticketId) => {
+  const tickets = await getTickets(playerId);
+  return tickets.find(ticket => ticket.id == ticketId);
+};
+
 // Private
 const claimValidations = {
   firstLine: (ticket) => isValidLineClaim(ticket, 1),
@@ -148,16 +161,13 @@ const findTicket = (game, playerId, ticketId) => {
 };
 
 const markCell = (rows, number) => {
-  let marked = false;
   rows.forEach(row => {
     row.forEach(cell => {
       if(cell.number == number) {
-        marked = true;
         cell.marked = true;
       }
     });
   });
-  return marked;
 };
 
 const generatePlayer = (details) => {
@@ -194,4 +204,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, processClaim, getWinners, getConfirmedPlayers, deleteGame};
+module.exports = {createGame,getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};
