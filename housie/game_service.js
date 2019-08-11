@@ -25,6 +25,13 @@ const getRegisteredPlayers = async () => {
   }).join("\n");
 };
 
+const getConfirmedPlayers = async () => {
+  let game = await db.find();
+  return game.players.map((player, index) => {
+    return `${index+1}. ${player.id} - ${player.name}`;
+  }).join("\n");
+};
+
 const confirmPlayer = async (id) => {
   let game = await db.find();
   const player = game.registeredPlayers.find(p => p.id === id);
@@ -149,4 +156,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, processClaim, getWinners};
+module.exports = {createGame, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, processClaim, getWinners, getConfirmedPlayers};
