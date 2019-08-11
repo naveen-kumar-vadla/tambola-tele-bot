@@ -1,4 +1,4 @@
-const {createGame, deleteGame, signup, getRegisteredPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {createGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {admins} = require("./config");
 
 const Telegraf = require('telegraf');
@@ -33,7 +33,7 @@ bot.command("signup", async (context) => {
     chatId: chat.id,
     name: `${from.first_name} ${from.last_name}`,
     numberOfTickets: matchs[2]
-  });
+  }).catch((err) => onError(context, err));
   if(signedUp.error) {
     return context.reply(signedUp.error);
   }
@@ -47,8 +47,33 @@ bot.use((context, next) => {
   }
   return next();
 });
+
+bot.command("registered", async (context) => {
+  const players = await getRegisteredPlayers();
+  return context.reply(convertPlayersToMessage(players) || "Empty");
+});
+
+bot.command("players", async (context) => {
+  const players = await getConfirmedPlayers();
+  return context.reply(convertPlayersToMessage(players) || "Empty");
+});
+
+bot.command("confirm", async (context) => {
+  const regEx = new RegExp("^(/confirm) (\\d+)\$");
+  const matchs = regEx.exec(context.message.text);
+  if(!matchs) {
+    return context.reply("Player id is missing.");
+  }
+  const playerId = matchs[2];
+  const result = await confirmPlayer(playerId).catch((err) => onError(context, err));
+  if(result.error) {
+    return context.reply(result.error);
+  }
+  return context.reply(`Confirmed player: ${playerId}`);
+});
+
 bot.command('create', async (context) => {
-  const created = await createGame().catch(() => onError(context));
+  const created = await createGame().catch((err) => onError(context, err));
   return context.reply(created.result);
 });
 bot.command('delete', async (context) => {
@@ -63,6 +88,12 @@ bot.catch((err) => {
 bot.launch();
 
 // Private
+const convertPlayersToMessage = (players) => {
+  return players.map((player, index) => {
+    return `${index+1}. ${player.id} - ${player.name} - ${player.tickets.length}`;
+  }).join("\n");
+};
+
 const onError = (context, err) => {
   context.reply("Ooops!!! There is an error. Please contact admin.");
   console.log("Error handled gracefully", err);

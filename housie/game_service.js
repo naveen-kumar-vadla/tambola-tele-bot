@@ -15,7 +15,7 @@ const createGame = async () => {
 
 const signup = async (details) => {
   let game = await db.find();
-  if(hasAlreadyRegistered(game, details.id)) {
+  if(findRegisteredPlayer(game, details.id)) {
     return {error: "Already signed up."}
   }
   game.registeredPlayers.push(generatePlayer(details));
@@ -24,21 +24,23 @@ const signup = async (details) => {
 
 const getRegisteredPlayers = async () => {
   let game = await db.find();
-  return game.registeredPlayers.map((player, index) => {
-    return `${index+1}. ${player.id} - ${player.name}`;
-  }).join("\n");
+  return game.registeredPlayers;
 };
 
 const getConfirmedPlayers = async () => {
   let game = await db.find();
-  return game.players.map((player, index) => {
-    return `${index+1}. ${player.id} - ${player.name}`;
-  }).join("\n");
+  return game.players;
 };
 
 const confirmPlayer = async (id) => {
   let game = await db.find();
-  const player = game.registeredPlayers.find(p => p.id === id);
+  if(findPlayer(game, id)) {
+    return {error: "Already confirmed"};
+  }
+  const player = findRegisteredPlayer(game, id);
+  if(!player) {
+    return {error: "Invalid player id"};
+  }
   game.players.push(player);
   return db.update(game);
 };
@@ -108,11 +110,11 @@ const isValidLineClaim = (ticket, line) => {
 };
 
 const findPlayer = (game, playerId) => {
-  return game.players.find((p => p.id === playerId));
+  return game.players.find((p => p.id == playerId));
 };
 
-const hasAlreadyRegistered = (game, playerId) => {
-  return game.registeredPlayers.find((p => p.id === playerId));
+const findRegisteredPlayer = (game, playerId) => {
+  return game.registeredPlayers.find((p => p.id == playerId));
 };
 
 const findTicket = (game, playerId, ticketId) => {
@@ -124,7 +126,7 @@ const markCell = (rows, number) => {
   let marked = false;
   rows.forEach(row => {
     row.forEach(cell => {
-      if(cell.number === number) {
+      if(cell.number == number) {
         marked = true;
         cell.marked = true;
       }
