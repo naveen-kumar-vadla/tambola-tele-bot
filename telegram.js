@@ -1,5 +1,6 @@
 const {createGame, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {admins} = require("./config");
+const numbers = require("./numbers");
 
 const Telegraf = require('telegraf');
 const Telegram = require('telegraf/telegram');
@@ -95,9 +96,16 @@ bot.command("startGame", async (context) => {
   if(players.error) {
     return context.reply(players.error);
   }
-  players.forEach((player) => {
-    telegram.sendMessage(player, "Game started now. Get ready for the numbers....")
-  });
+  informEveryone(players, "Game started now. Get ready for the numbers in the middle of messages.");
+  return context.reply("Informed all players.");
+});
+
+bot.command("reveal", async (context) => {
+  const result = await revealNumber();
+  if(result.error) {
+    return context.reply(result.error);
+  }
+  informEveryone(result.chatIds, numbers[result.number], {parse_mode: "HTML"});
   return context.reply("Informed all players.");
 });
 
@@ -108,6 +116,13 @@ bot.catch((err) => {
 bot.launch();
 
 // Private
+
+const informEveryone = (chatIds, message, options) => {
+  chatIds.forEach((chatId) => {
+    telegram.sendMessage(chatId, message, options);
+  });
+};
+
 const convertPlayersToMessage = (players) => {
   return players.map((player, index) => {
     return `${index+1}. ${player.id} - ${player.name} - ${player.tickets.length}`;

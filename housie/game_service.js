@@ -52,9 +52,15 @@ const confirmPlayer = async (id) => {
 const revealNumber = async () => {
   let game = await db.find();
   const number = game.sequence.pop();
+  if(!number) {
+    return {error: "All numbers are done!!!"};
+  }
   game.revealed.push(number);
   await db.update(game);
-  return number;
+  return {
+    number,
+    chatIds: game.players.map(player => player.chatId)
+  };
 };
 
 const mark = async (details) => {
