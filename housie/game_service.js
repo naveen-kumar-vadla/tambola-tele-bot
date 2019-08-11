@@ -3,7 +3,6 @@ const fs = require("fs");
 const shortId = require('shortid');
 const tambola = require('tambola-generator');
 
-
 const createGame = async (newGame) => {
   let game = await db.find();
   if(game) {
@@ -46,14 +45,62 @@ const mark = async (details) => {
   if(!game.revealed.includes(details.number)) {
     return false;
   }
-  const player = game.players.find((p => p.id === details.playerId));
-  const ticket = player.tickets.find(t => t.id = details.ticketId);
+  const ticket = findTicket(game, details.playerId, details.ticketId);
   const marked = markCell(ticket.cells, details.number);
   await db.update(game);
   return marked;
 };
 
+const processClaim = async (details) => {
+  let game = await db.find();
+  if(game.winners[details.claim]) {
+    return "CLAIMED";
+  }
+  const claimed = claimValidations[details.claim](findTicket(game, details.playerId, details.ticketId));
+  updateWinner(game, details.claim, details.playerId);
+  db.update(game);
+  return claimed ? "SUCCESS" : "FAILED";
+};
+
+const getWinners = async () => {
+  let game = await db.find();
+  const winners = game.winners;
+  return `First line: ${winners.firstLine ? winners.firstLine.name : '-'}\n` +
+        `Second line: ${winners.secondLine ? winners.secondLine.name : '-'}\n` +
+        `Third line: ${winners.thirdLine ? winners.thirdLine.name : '-'}\n` +
+        `Full housie: ${winners.fullHousie ? winners.fullHousie.name : '-'}`;
+};
+
 // Private
+
+const claimValidations = {
+  firstLine: (ticket) => isValidLineClaim(ticket, 1),
+  secondLine: (ticket) => isValidLineClaim(ticket, 2),
+  thirdLine: (ticket) => isValidLineClaim(ticket, 3),
+  fullHousie: (ticket) => {
+    return isValidLineClaim(ticket, 1) && isValidLineClaim(ticket, 2) && isValidLineClaim(ticket, 3);
+  }
+};
+
+const updateWinner = (game, claim, playerId) => {
+  game.winners[claim] = {
+    playerId: playerId,
+    name: findPlayer(game, playerId).name
+  };
+};
+
+const isValidLineClaim = (ticket, line) => {
+  return ticket.cells[line - 1].every(cell => cell.marked);
+};
+
+const findPlayer = (game, playerId) => {
+  return game.players.find((p => p.id === playerId));
+};
+
+const findTicket = (game, playerId, ticketId) => {
+  const player = findPlayer(game, playerId);
+  return player.tickets.find(t => t.id = ticketId);
+};
 
 const markCell = (rows, number) => {
   let marked = false;
@@ -102,4 +149,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark};
+module.exports = {createGame, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, processClaim, getWinners};

@@ -7,10 +7,10 @@ const game = {
   "sequence": [],
   "revealed": [],
   "winners": {
-    "firstLine": "",
-    "secondLine": "",
-    "thirdLine": "",
-    "fullHousie": ""
+    "firstLine": null,
+    "secondLine": null,
+    "thirdLine": null,
+    "fullHousie": null
   },
   "registeredPlayers": [],
   "players": []
