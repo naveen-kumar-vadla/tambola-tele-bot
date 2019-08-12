@@ -1,4 +1,4 @@
-const {createGame, getTicket, getTickets, processClaim, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {createGame, getTicket, getTickets, getWinners, processClaim, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {admins} = require("./config");
 const numbers = require("./numbers");
 
@@ -75,7 +75,7 @@ const onError = (context, err) => {
 };
 
 const claimActions = {
-    CLAIMED: (details, context) => context.answerCbQuery("Already someone claimed it. Look winners using /results command"),
+    CLAIMED: (details, context) => context.answerCbQuery("Already someone claimed it. Look winners using /winners command"),
     SUCCESS: async (details, context) => {
       const {from, answerCbQuery} = context;
       answerCbQuery("Congratulations");
@@ -128,6 +128,11 @@ bot.command("tickets", async (context) => {
   return tickets.forEach((ticket, index) => {
     telegram.sendMessage(context.chat.id, `Ticket ${index+1}`, convertToTicket(ticket));
   });
+});
+
+bot.command("winners", async (context) => {
+  const winners = await getWinners();
+  context.reply(winners);
 });
 
 bot.action(isMarkAction, async ({reply, editMessageText, from, callbackQuery, answerCbQuery}) => {

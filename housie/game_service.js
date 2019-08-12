@@ -163,7 +163,7 @@ const findRegisteredPlayer = (game, playerId) => {
 
 const findTicket = (game, playerId, ticketId) => {
   const player = findPlayer(game, playerId);
-  return player.tickets.find(t => t.id = ticketId);
+  return player.tickets.find(t => t.id == ticketId);
 };
 
 const markCell = (rows, number) => {
