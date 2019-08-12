@@ -29,7 +29,7 @@ const remove = async () => {
 
 //private
 const connection = () => {
-  return MongoClient.connect(database.url, {useNewUrlParser: true})
+  return MongoClient.connect(process.env.DATABASE_URL || database.url, {useNewUrlParser: true})
       .then(client => client.db(database.name))
       .catch(err => console.log("Error: ", err));
 };

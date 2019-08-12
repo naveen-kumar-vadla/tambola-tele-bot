@@ -11,7 +11,11 @@ const fs = require("fs");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const telegram = new Telegram(process.env.BOT_TOKEN);
 
+const PORT = process.env.PORT || 3000;
+const URL = process.env.URL || 'https://telegames.herokuapp.com/';
 
+bot.telegram.setWebhook(`${URL}/bot${API_TOKEN}`);
+bot.startWebhook(`/bot${API_TOKEN}`, null, PORT);
 
 // Private
 const informEveryone = (chatIds, message, options) => {
