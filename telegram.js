@@ -1,4 +1,4 @@
-const {createGame, getTicket, getTickets, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {createGame, getTicket, getTickets, processClaim, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {admins} = require("./config");
 const numbers = require("./numbers");
 
@@ -15,7 +15,7 @@ const telegram = new Telegram(process.env.BOT_TOKEN);
 
 // Private
 const informEveryone = (chatIds, message, options) => {
-  chatIds.forEach((chatId) => {
+  return chatIds.forEach((chatId) => {
     telegram.sendMessage(chatId, message, options);
   });
 };
@@ -24,14 +24,29 @@ const isMarkAction = (data) => {
   return data.indexOf("mark") === 0;
 };
 
+const isClaimAction = (data) => {
+  return data.indexOf("claim") === 0;
+};
+
+const transpose = a => a[0].map((_, c) => a.map(r => r[c]));
+
 const convertToTicket = (ticket) => {
-  return Markup.inlineKeyboard(
-      ticket.cells.map(row => {
+  const cells = transpose(ticket.cells);
+  return Markup.inlineKeyboard([
+      ...cells.map(row => {
         return row.map(cell => {
           return Markup.callbackButton(getNumber(cell), getAction(cell, ticket))
         })
-      })
-  ).extra();
+      }),
+      [
+          Markup.callbackButton("Claim column 🔝", `claim ${JSON.stringify({ticketId: ticket.id, claim: "firstLine"})}`),
+          Markup.callbackButton("Claim️ column 🔝", `claim ${JSON.stringify({ticketId: ticket.id, claim: "secondLine"})}`),
+          Markup.callbackButton("Claim️ column 🔝", `claim ${JSON.stringify({ticketId: ticket.id, claim: "thirdLine"})}`)
+      ],
+      [
+        Markup.callbackButton("Claim full housie", `claim ${JSON.stringify({ticketId: ticket.id, claim: "fullHousie"})}`)
+      ]
+  ]).extra();
 };
 
 const getAction = (cell, ticket) => {
@@ -57,6 +72,18 @@ const convertPlayersToMessage = (players) => {
 const onError = (context, err) => {
   context.reply("Ooops!!! There is an error. Please contact admin.");
   console.log("Error handled gracefully", err);
+};
+
+const claimActions = {
+    CLAIMED: (details, context) => context.answerCbQuery("Already someone claimed it. Look winners using /results command"),
+    SUCCESS: async (details, context) => {
+      const {from, answerCbQuery} = context;
+      answerCbQuery("Congratulations");
+      const chatIds = await getAllChatIds();
+      const claims = {firstLine: "First Column", secondLine: "Second Column",  thirdLine: "Third Column", fullHousie: "Full Housie"};
+      return informEveryone(chatIds, `Congratulations ${from.first_name} ${from.last_name} for winning the ${claims[details.claim]}`);
+    },
+    FAILED: (details, context) => context.answerCbQuery("Not done yet!!! Check carefully.")
 };
 
 // Private done.
@@ -109,6 +136,14 @@ bot.action(isMarkAction, async ({reply, editMessageText, from, callbackQuery, an
   answerCbQuery("Done!");
   const ticket = await getTicket(from.id, data.ticketId);
   return editMessageText(callbackQuery.message.text , convertToTicket(ticket));
+});
+
+bot.action(isClaimAction, async (context) => {
+  const {callbackQuery, from} = context;
+  const data = JSON.parse(callbackQuery.data.split("claim ")[1]);
+  const details = {...data, playerId: from.id};
+  const result = await processClaim(details);
+  claimActions[result](details, context);
 });
 
 bot.action("cellMarked", async ({answerCbQuery}) => {

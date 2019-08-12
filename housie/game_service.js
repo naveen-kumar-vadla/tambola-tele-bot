@@ -79,9 +79,12 @@ const processClaim = async (details) => {
     return "CLAIMED";
   }
   const claimed = claimValidations[details.claim](findTicket(game, details.playerId, details.ticketId));
-  updateWinner(game, details.claim, details.playerId);
-  db.update(game);
-  return claimed ? "SUCCESS" : "FAILED";
+  if(claimed) {
+    updateWinner(game, details.claim, details.playerId);
+    db.update(game);
+    return "SUCCESS";
+  }
+  return "FAILED";
 };
 
 const getWinners = async () => {
@@ -144,7 +147,7 @@ const updateWinner = (game, claim, playerId) => {
 };
 
 const isValidLineClaim = (ticket, line) => {
-  return ticket.cells[line - 1].every(cell => cell.marked);
+  return ticket.cells[line - 1].every(cell => cell.marked || (cell.number == "0"));
 };
 
 const findPlayer = (game, playerId) => {
@@ -180,7 +183,8 @@ const generatePlayer = (details) => {
 };
 
 const generateTickets = (numberOfTickets) => {
-  return new Array(numberOfTickets).fill(null).map(() => {
+  let array = new Array(parseInt(numberOfTickets));
+  return array.fill(0).map((zero) => {
     return generateTicket();
   });
 };
@@ -204,4 +208,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame,getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};
+module.exports = {createGame, getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};
