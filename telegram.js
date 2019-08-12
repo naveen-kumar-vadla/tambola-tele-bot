@@ -8,14 +8,15 @@ const Markup = require('telegraf/markup');
 const session = require('telegraf/session');
 const fs = require("fs");
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
-const telegram = new Telegram(process.env.BOT_TOKEN);
+let BOT_TOKEN = process.env.BOT_TOKEN;
+const bot = new Telegraf(BOT_TOKEN);
+const telegram = new Telegram(BOT_TOKEN);
 
 const PORT = process.env.PORT || 3000;
 const URL = process.env.URL || 'https://telegames.herokuapp.com/';
 
-bot.telegram.setWebhook(`${URL}/bot${API_TOKEN}`);
-bot.startWebhook(`/bot${API_TOKEN}`, null, PORT);
+bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
+bot.startWebhook(`/bot${BOT_TOKEN}`, null, PORT);
 
 // Private
 const informEveryone = (chatIds, message, options) => {
