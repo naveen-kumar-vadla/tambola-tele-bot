@@ -97,9 +97,20 @@ bot.use((context, next) => {
   console.log(log);
   return next();
 });
-bot.start((ctx) => ctx.reply('Welcome!'));
+bot.start((context) => {
+  return context.replyWithHTML(fs.readFileSync("./help.html", "utf-8"));
+});
+bot.help((context) => {
+  return context.replyWithHTML(fs.readFileSync("./help.html", "utf-8"));
+});
 
 //Player
+bot.command("example", (context) => {
+  return context.replyWithPhoto({
+    source: "./transposed-ticket.jpg"
+  })
+});
+
 bot.command("signup", async (context) => {
   const regEx = new RegExp("^(/signup) ([123])\$");
   const {from, chat, message} = context;

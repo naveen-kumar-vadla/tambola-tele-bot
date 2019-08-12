@@ -2,3 +2,6 @@ fileignoreconfig:
 - filename: package-lock.json
   checksum: 469f696b034409ee86d27e2314887b63ed68c540982baac6e8ca86155b58a2df
   ignore_detectors: []
+- filename: transposed-ticket.jpg
+  checksum: 34551e87156471e123f96a4d1006466dc8725bce6ebe0aababd8fde39dd9f25b
+  ignore_detectors: []
