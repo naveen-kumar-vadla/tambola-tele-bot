@@ -117,6 +117,9 @@ const getAllChatIds = async () => {
 
 const getTickets = async (playerId) => {
   let game = await db.find();
+  if(game.status === "DRAFTED") {
+    return {error: "Game not started yet!!!"}
+  }
   const player = findPlayer(game, playerId);
   if(!player) {
     return {error: "No tickets available for you"};

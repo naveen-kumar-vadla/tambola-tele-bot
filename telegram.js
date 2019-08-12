@@ -121,6 +121,9 @@ bot.command("signup", async (context) => {
 
 bot.command("tickets", async (context) => {
   const tickets = await getTickets(context.from.id);
+  if(tickets.error) {
+    return context.reply(tickets.error);
+  }
   context.reply("Here your ticket(s) are...");
   return tickets.forEach((ticket, index) => {
     telegram.sendMessage(context.chat.id, `Ticket ${index+1}`, convertToTicket(ticket));
@@ -219,28 +222,3 @@ bot.catch((err) => {
 });
 
 bot.launch();
-
-
-// (async () => {
-//  var result = await signup({
-//     id: "12345",
-//     chatId: "1234",
-//     name: "Mahesh Kumar Kolla",
-//     numberOfTickets: 2
-//   });
-//   console.log(result);
-//
-//   var result = await getRegisteredPlayers();
-//   console.log(result);
-//
-//   await confirmPlayer("12345");
-//
-//   await revealNumber();
-//
-//   var result = await mark( {
-//     playerId: "12345",
-//     ticketId: "uq2ryK_xaC",
-//     number: 80
-//   });
-//   console.log(result);
-// })();
