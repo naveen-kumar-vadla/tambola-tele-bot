@@ -1,4 +1,5 @@
 const {createGame, getBlockedChatIds, getTicket, getTickets, getWinners, processClaim, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {push} = require("./telegram_queue");
 const {admins} = require("./config");
 const numbers = require("./numbers");
 
@@ -26,7 +27,9 @@ setTimeout(async () => {
 // Private
 const informEveryone = (chatIds, message, options) => {
   return chatIds.forEach((chatId) => {
-    telegram.sendMessage(chatId, message, options);
+    push(() => {
+      telegram.sendMessage(chatId, message, options);
+    });
   });
 };
 
@@ -80,20 +83,24 @@ const convertPlayersToMessage = (players) => {
 };
 
 const onError = (context, err) => {
-  context.reply("Ooops!!! There is an error. Please contact admin.");
+  push(() => {
+    context.reply("Ooops!!! There is an error. Please contact admin.");
+  });
   console.log("Error handled gracefully", err);
 };
 
 const claimActions = {
-    CLAIMED: (details, context) => context.answerCbQuery("Already someone claimed it. Look winners using /winners command"),
+    CLAIMED: (details, context) => push(() => {
+      context.answerCbQuery("Already someone claimed it. Look winners using /winners command");
+    }),
     SUCCESS: async (details, context) => {
       const {from, answerCbQuery} = context;
-      answerCbQuery("Congratulations");
+      push(() => answerCbQuery("Congratulations"));
       const chatIds = await getAllChatIds();
       const claims = {firstLine: "First Column", secondLine: "Second Column",  thirdLine: "Third Column", fullHousie: "Full Housie"};
       return informEveryone(chatIds, `Congratulations ${from.first_name} ${from.last_name} for winning the ${claims[details.claim]}`);
     },
-    FAILED: (details, context) => context.answerCbQuery("Not done yet!!! Check carefully.")
+    FAILED: (details, context) => push(() => context.answerCbQuery("Not done yet!!! Check carefully."))
 };
 
 const actionOnInvalidAttempt = (invalidAttempts, chatId) => {
@@ -111,7 +118,7 @@ const actionOnInvalidAttempt = (invalidAttempts, chatId) => {
     message = "Go to Hell!!!";
     blockedChatIds.push(chatId);
   }
-  return telegram.sendMessage(chatId, message);
+  return push(() => telegram.sendMessage(chatId, message));
 };
 
 // Private done.
@@ -128,26 +135,26 @@ bot.use((context, next) => {
   console.log(log);
   return next();
 });
-bot.start((context) => {
-  return context.replyWithHTML(fs.readFileSync("./help.html", "utf-8"));
+bot.start(({replyWithHTML}) => {
+  return push(() => replyWithHTML(fs.readFileSync("./help.html", "utf-8")));
 });
-bot.help((context) => {
-  return context.replyWithHTML(fs.readFileSync("./help.html", "utf-8"));
+bot.help(({replyWithHTML}) => {
+  return push(() => replyWithHTML(fs.readFileSync("./help.html", "utf-8")));
 });
 
 //Player
-bot.command("example", (context) => {
-  return context.replyWithPhoto({
+bot.command("example", ({replyWithPhoto}) => {
+  return push(() => replyWithPhoto({
     source: "./transposed-ticket.jpg"
-  })
+  }));
 });
 
 bot.command("signup", async (context) => {
   const regEx = new RegExp("^(/signup) ([123])\$");
-  const {from, chat, message} = context;
+  const {from, chat, message, reply} = context;
   const matchs = regEx.exec(message.text);
   if(!matchs) {
-    return context.reply("Please specify the number of tickets(1 or 2 or 3). Ex: /signup 1");
+    return push(() => reply("Please specify the number of tickets(1 or 2 or 3). Ex: /signup 1"));
   }
   const signedUp = await signup({
     id: from.id,
@@ -156,25 +163,27 @@ bot.command("signup", async (context) => {
     numberOfTickets: matchs[2]
   }).catch((err) => onError(context, err));
   if(signedUp.error) {
-    return context.reply(signedUp.error);
+    return push(() => reply(signedUp.error));
   }
-  return context.reply(`Signed up successfully. Please contact admin and pay money`);
+  return push(() => reply(`Signed up successfully. Please contact admin and pay money`));
 });
 
 bot.command("tickets", async (context) => {
   const tickets = await getTickets(context.from.id);
   if(tickets.error) {
-    return context.reply(tickets.error);
+    return push(() => context.reply(tickets.error));
   }
-  context.reply("Here your ticket(s) are...");
+  push(() => context.reply("Here your ticket(s) are..."));
   return tickets.forEach((ticket, index) => {
-    telegram.sendMessage(context.chat.id, `Ticket ${index+1}`, convertToTicket(ticket));
+    push(() => {
+      telegram.sendMessage(context.chat.id, `Ticket ${index+1}`, convertToTicket(ticket));
+    });
   });
 });
 
 bot.command("winners", async (context) => {
   const winners = await getWinners();
-  context.reply(winners);
+  push(() => context.reply(winners));
 });
 
 bot.action(isMarkAction, async ({reply, chat, editMessageText, from, callbackQuery, answerCbQuery}) => {
@@ -182,7 +191,7 @@ bot.action(isMarkAction, async ({reply, chat, editMessageText, from, callbackQue
   const result = await mark({...data, playerId: from.id});
   if(result.error) {
     actionOnInvalidAttempt(result.invalidAttempts, chat.id);
-    return answerCbQuery(result.error);
+    return push(() => answerCbQuery(result.error));
   }
   answerCbQuery("Done!");
   const ticket = await getTicket(from.id, data.ticketId);
@@ -198,7 +207,7 @@ bot.action(isClaimAction, async (context) => {
 });
 
 bot.action("cellMarked", async ({answerCbQuery}) => {
-  return answerCbQuery("Shhh!");
+  return push(() => answerCbQuery("Shhh!"));
 });
 
 //Admin
@@ -211,58 +220,58 @@ bot.use((context, next) => {
 
 bot.command("registered", async (context) => {
   const players = await getRegisteredPlayers();
-  return context.reply(convertPlayersToMessage(players) || "Empty");
+  return push(() => context.reply(convertPlayersToMessage(players) || "Empty"));
 });
 
 bot.command("players", async (context) => {
   const players = await getConfirmedPlayers();
-  return context.reply(convertPlayersToMessage(players) || "Empty");
+  return push(() => context.reply(convertPlayersToMessage(players) || "Empty"));
 });
 
 bot.command("confirm", async (context) => {
   const regEx = new RegExp("^(/confirm) (\\d+)\$");
   const matchs = regEx.exec(context.message.text);
   if(!matchs) {
-    return context.reply("Player id is missing.");
+    return push(() => context.reply("Player id is missing."));
   }
   const playerId = matchs[2];
   const result = await confirmPlayer(playerId).catch((err) => onError(context, err));
   if(result.error) {
-    return context.reply(result.error);
+    return push(() => context.reply(result.error));
   }
-  return context.reply(`Confirmed player: ${playerId}`);
+  return push(() => context.reply(`Confirmed player: ${playerId}`));
 });
 
 bot.command('create', async (context) => {
   const created = await createGame().catch((err) => onError(context, err));
-  return context.reply(created.result);
+  return push(() => context.reply(created.result));
 });
 bot.command('delete', async (context) => {
   const deleted = await deleteGame().catch((err) => onError(context, err));
-  return context.reply(deleted.result)
+  return push(() => context.reply(deleted.result));
 });
 
 bot.command('game', async (context) => {
   const game = Buffer.from(JSON.stringify(await getGame()));
-  return context.replyWithDocument({source: game, filename: "game.json"});
+  return push(() => context.replyWithDocument({source: game, filename: "game.json"}));
 });
 
 bot.command("startGame", async (context) => {
   const players = await startGameAndGetChatIds();
   if(players.error) {
-    return context.reply(players.error);
+    return push(() => context.reply(players.error));
   }
   informEveryone(players, "Game started now. Get ready for the numbers in the middle of messages.");
-  return context.reply("Informed all players.");
+  return push(() => context.reply("Informed all players."));
 });
 
 bot.command("reveal", async (context) => {
   const result = await revealNumber();
   if(result.error) {
-    return context.reply(result.error);
+    return push(() => context.reply(result.error));
   }
   informEveryone(result.chatIds, numbers[result.number], {parse_mode: "HTML"});
-  return context.reply("Informed all players.");
+  return push(() => context.reply("Informed all players."));
 });
 
 bot.catch((err) => {
