@@ -17,6 +17,8 @@ const connection = () => {
 
 const insert = async (document) => {
   const collection = db.collection(COLLECTION_NAME);
+  // Create blockedUsers
+  getBlockedUser();
   return await collection.insertOne(document);
 };
 
@@ -33,7 +35,32 @@ const update = async (game) => {
 const remove = async () => {
   const collection = db.collection(COLLECTION_NAME);
   const game = await find(db);
+  removeBlockedUsers();
   return collection.deleteOne({_id: game._id});
 };
 
-module.exports = {insert, find, update, remove};
+const removeBlockedUsers = async () => {
+  const collection = db.collection("blocked_users");
+  const blockedUsers = await collection.findOne();
+  blockedUsers.ids = [];
+  return collection.updateOne({_id: blockedUsers._id}, {$set: blockedUsers});
+};
+
+const blockUser = async (chatId) => {
+  const collection = db.collection("blocked_users");
+  let blockedUsers = await collection.findOne();
+  blockedUsers.ids.push(chatId);
+  return collection.updateOne({_id: blockedUsers._id}, {$set: blockedUsers});
+};
+
+const getBlockedUser = async () => {
+  const collection = db.collection("blocked_users");
+  const blocked = await collection.findOne();
+  if(!blocked) {
+    collection.insertOne({ids: []});
+    return [];
+  }
+  return blocked;
+};
+
+module.exports = {insert, find, update, remove, blockUser, getBlockedUser};

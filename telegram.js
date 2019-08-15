@@ -1,4 +1,4 @@
-const {createGame, getTicket, getTickets, getWinners, processClaim, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {createGame, getBlockedChatIds, getTicket, getTickets, getWinners, processClaim, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {admins} = require("./config");
 const numbers = require("./numbers");
 
@@ -17,6 +17,11 @@ const URL = process.env.URL || 'https://telegames.herokuapp.com/';
 
 bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
 bot.startWebhook(`/bot${BOT_TOKEN}`, null, PORT);
+let blockedChatIds = [];
+
+setTimeout(async () => {
+  blockedChatIds = await getBlockedChatIds();
+}, 1000);
 
 // Private
 const informEveryone = (chatIds, message, options) => {
@@ -91,14 +96,35 @@ const claimActions = {
     FAILED: (details, context) => context.answerCbQuery("Not done yet!!! Check carefully.")
 };
 
-// Private done.
+const actionOnInvalidAttempt = (invalidAttempts, chatId) => {
+  const actions = {
+    1: "Shhh: Invalid attempt",
+    2: "Shhh: Invalid attempt",
+    3: "Take care of invalid attempts.",
+    4: "No more invalid attempts please....",
+    5: "Stop clicking on random numbers!",
+    6: "I am serious! Stop it right now!",
+    7: "I am angryyyyyyyyyyyyyyyy!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  };
+  let message = actions[invalidAttempts] || "You will be blocked soon if you continue and will not be able to play the Game.";
+  if(invalidAttempts >= 10) {
+    message = "Go to Hell!!!";
+    blockedChatIds.push(chatId);
+  }
+  return telegram.sendMessage(chatId, message);
+};
 
+// Private done.
 
 bot.use(session());
 bot.use((context, next) => {
-  const {from, message, callbackQuery} = context;
+  const {from, chat, message, callbackQuery} = context;
   const text = message ? message.text : callbackQuery.data;
   const log = `${new Date().toString()} ${from.id}-${from.first_name} : ${text}`;
+  if(blockedChatIds.includes(chat.id)) {
+    console.log(`${log} <- From BLOCKED user`);
+    return;
+  }
   console.log(log);
   return next();
 });
@@ -151,10 +177,11 @@ bot.command("winners", async (context) => {
   context.reply(winners);
 });
 
-bot.action(isMarkAction, async ({reply, editMessageText, from, callbackQuery, answerCbQuery}) => {
+bot.action(isMarkAction, async ({reply, chat, editMessageText, from, callbackQuery, answerCbQuery}) => {
   const data = JSON.parse(callbackQuery.data.split("mark ")[1]);
   const result = await mark({...data, playerId: from.id});
   if(result.error) {
+    actionOnInvalidAttempt(result.invalidAttempts, chat.id);
     return answerCbQuery(result.error);
   }
   answerCbQuery("Done!");

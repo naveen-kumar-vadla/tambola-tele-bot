@@ -66,7 +66,13 @@ const revealNumber = async () => {
 const mark = async (details) => {
   let game = await db.find();
   if(!game.revealed.includes(details.number)) {
-    return {error: "Shhhh!!!! Invalid attempt!!!"};
+    let player = findPlayer(game, details.playerId);
+    player.invalidAttempts = player.invalidAttempts + 1;
+    if(player.invalidAttempts >= 10) {
+      db.blockUser(player.chatId);
+    }
+    db.update(game);
+    return {error: `Shhhh!!!! Invalid attempt`, invalidAttempts: player.invalidAttempts};
   }
   const ticket = findTicket(game, details.playerId, details.ticketId);
   markCell(ticket.cells, details.number);
@@ -132,6 +138,11 @@ const getTicket = async (playerId, ticketId) => {
   return tickets.find(ticket => ticket.id == ticketId);
 };
 
+const getBlockedChatIds = async () => {
+  const blocked = await db.getBlockedUser();
+  return blocked.ids;
+};
+
 // Private
 const claimValidations = {
   firstLine: (ticket) => isValidLineClaim(ticket, 1),
@@ -181,6 +192,7 @@ const generatePlayer = (details) => {
     id: details.id,
     chatId: details.chatId,
     name: details.name,
+    invalidAttempts: 0,
     tickets: generateTickets(details.numberOfTickets)
   }
 };
@@ -211,4 +223,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};
+module.exports = {createGame, getBlockedChatIds, getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};
