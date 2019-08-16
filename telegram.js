@@ -173,7 +173,7 @@ bot.command("tickets", async (context) => {
   if(tickets.error) {
     return push(() => context.reply(tickets.error));
   }
-  push(() => context.reply("Here your ticket(s) are..."));
+  push(() => context.reply("Here are your ticket(s)..."));
   return tickets.forEach((ticket, index) => {
     push(() => {
       telegram.sendMessage(context.chat.id, `Ticket ${index+1}`, convertToTicket(ticket));
