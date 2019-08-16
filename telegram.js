@@ -98,7 +98,7 @@ const claimActions = {
       push(() => answerCbQuery("Congratulations"));
       const chatIds = await getAllChatIds();
       const claims = {firstLine: "First Column", secondLine: "Second Column",  thirdLine: "Third Column", fullHousie: "Full Housie"};
-      return informEveryone(chatIds, `Congratulations ${from.first_name} ${from.last_name} for winning the ${claims[details.claim]}`);
+      return informEveryone(chatIds, `Congratulations ${from.first_name} ${from.last_name || ''} for winning the ${claims[details.claim]}`);
     },
     FAILED: (details, context) => push(() => context.answerCbQuery("Not done yet!!! Check carefully."))
 };
@@ -159,7 +159,7 @@ bot.command("signup", async (context) => {
   const signedUp = await signup({
     id: from.id,
     chatId: chat.id,
-    name: `${from.first_name} ${from.last_name}`,
+    name: `${from.first_name} ${from.last_name || ''}`,
     numberOfTickets: matchs[2]
   }).catch((err) => onError(context, err));
   if(signedUp.error) {
