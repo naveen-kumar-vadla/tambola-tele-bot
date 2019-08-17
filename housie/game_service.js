@@ -46,7 +46,8 @@ const confirmPlayer = async (id) => {
     return {error: "Invalid player id"};
   }
   game.players.push(player);
-  return db.update(game);
+  await db.update(game);
+  return {chatId: player.chatId}
 };
 
 const revealNumber = async () => {

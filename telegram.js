@@ -239,6 +239,7 @@ bot.command("confirm", async (context) => {
   if(result.error) {
     return push(() => context.reply(result.error));
   }
+  push(() => telegram.sendMessage(result.chatId, "You are confirmed by admin to play the game."));
   return push(() => context.reply(`Confirmed player: ${playerId}`));
 });
 
