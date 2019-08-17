@@ -275,6 +275,15 @@ bot.command("reveal", async (context) => {
   return push(() => context.reply("Informed all players."));
 });
 
+bot.command("send", async (context) => {
+  const regEx = new RegExp("^(/send) (.*)$");
+  const matchs = regEx.exec(context.message.text);
+  const message = matchs[2];
+  const chatIds = await getAllChatIds();
+  informEveryone(chatIds, message);
+  return context.reply("Sent to everyone");
+});
+
 bot.catch((err) => {
   console.log('ERROR =>', err)
 });
