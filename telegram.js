@@ -149,16 +149,6 @@ bot.command("example", ({replyWithPhoto}) => {
   }));
 });
 
-bot.command("getUser", (context) => {
-  const regEx = new RegExp("^(/getUser) (\\d+)\$");
-  const matchs = regEx.exec(context.message.text);
-  telegram.getChat(matchs[2]).then((data) => {
-    telegram.getFileLink(data.photo.big_file_id).then((photoLink) => {
-      context.reply({...data, photo: photoLink});
-    });
-  });
-});
-
 bot.command("signup", async (context) => {
   const regEx = new RegExp("^(/signup) ([123])\$");
   const {from, chat, message, reply} = context;
@@ -226,6 +216,16 @@ bot.use((context, next) => {
     return;
   }
   return next();
+});
+
+bot.command("getUser", (context) => {
+  const regEx = new RegExp("^(/getUser) (\\d+)\$");
+  const matchs = regEx.exec(context.message.text);
+  telegram.getChat(matchs[2]).then((data) => {
+    telegram.getFileLink(data.photo.big_file_id).then((photoLink) => {
+      context.reply({...data, photo: photoLink});
+    });
+  });
 });
 
 bot.command("registered", async (context) => {
