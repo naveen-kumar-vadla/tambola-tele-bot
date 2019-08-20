@@ -150,23 +150,22 @@ bot.command("example", ({replyWithPhoto}) => {
 });
 
 bot.command("signup", async (context) => {
-  push(() => context.reply("The deadline for signups has passed. You cannot signup now"));
-  // const regEx = new RegExp("^(/signup) ([123])\$");
-  // const {from, chat, message, reply} = context;
-  // const matchs = regEx.exec(message.text);
-  // if(!matchs) {
-  //   return push(() => reply("Please specify the number of tickets(1 or 2 or 3). Ex: /signup 1"));
-  // }
-  // const signedUp = await signup({
-  //   id: from.id,
-  //   chatId: chat.id,
-  //   name: `${from.first_name} ${from.last_name || ''}`,
-  //   numberOfTickets: matchs[2]
-  // }).catch((err) => onError(context, err));
-  // if(signedUp.error) {
-  //   return push(() => reply(signedUp.error));
-  // }
-  // return push(() => reply(`Signed up successfully. Please contact admin and pay money`));
+  const regEx = new RegExp("^(/signup) ([123])\$");
+  const {from, chat, message, reply} = context;
+  const matchs = regEx.exec(message.text);
+  if(!matchs) {
+    return push(() => reply("Please specify the number of tickets(1 or 2 or 3). Ex: /signup 1"));
+  }
+  const signedUp = await signup({
+    id: from.id,
+    chatId: chat.id,
+    name: `${from.first_name} ${from.last_name || ''}`,
+    numberOfTickets: matchs[2]
+  }).catch((err) => onError(context, err));
+  if(signedUp.error) {
+    return push(() => reply(signedUp.error));
+  }
+  return push(() => reply(`Signed up successfully. Please contact admin and pay money`));
 });
 
 bot.command("tickets", async (context) => {
