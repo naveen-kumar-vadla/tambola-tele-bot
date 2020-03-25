@@ -299,6 +299,15 @@ bot.command("send", async (context) => {
   return context.reply("Sent to everyone");
 });
 
+bot.command("sendTo", async (context) => {
+  const regEx = new RegExp("^(/sendTo) ([0-9]*) (.*)$");
+  const matchs = regEx.exec(context.message.text);
+  const to = matchs[2];
+  const message = matchs[3];
+  push(() => telegram.sendMessage(to, message));
+  return context.reply(`Sent to ${to}`);
+});
+
 bot.catch((err) => {
   console.log('ERROR =>', err)
 });
