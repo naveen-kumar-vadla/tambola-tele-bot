@@ -80,10 +80,9 @@ const getNumber = (cell) => {
 };
 
 const convertPlayersToMessage = (players) => {
-  const message = players.map((player, index) => {
+  return players.map((player, index) => {
     return `${index+1}. ${player.id} - ${player.name} - ${player.tickets.length}`;
   }).join("\n");
-  return `Total: ${players.length} \n ${message}`;
 };
 
 const onError = (context, err) => {

@@ -125,7 +125,8 @@ const getAllChatIds = async () => {
 
 const getRegisteredNotConfirmedPlayers = async () => {
   const allChatIds = await getAllChatIds();
-  return await getRegisteredPlayers().filter(id => !allChatIds.includes(id));
+  const registeredPlayers = await getRegisteredPlayers();
+  return registeredPlayers.filter(id => !allChatIds.includes(id));
 };
 
 const getTickets = async (playerId) => {
