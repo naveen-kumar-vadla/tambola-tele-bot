@@ -122,6 +122,10 @@ const getAllChatIds = async () => {
   return game.players.map(player => player.chatId);
 };
 
+const getRegisteredChatIds = async () => {
+  return await getRegisteredPlayers().map(player => player.chatId);
+};
+
 const getTickets = async (playerId) => {
   let game = await db.find();
   if(game.status === "DRAFTED") {
@@ -224,4 +228,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, getBlockedChatIds, getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, confirmPlayer, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};
+module.exports = {createGame, getBlockedChatIds, getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, getRegisteredChatIds, confirmPlayer, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};

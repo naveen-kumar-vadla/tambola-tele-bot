@@ -1,4 +1,4 @@
-const {createGame, getBlockedChatIds, getTicket, getTickets, getWinners, processClaim, getAllChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {createGame, getBlockedChatIds, getTicket, getTickets, getWinners, processClaim, getAllChatIds, getRegisteredChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {push} = require("./telegram_queue");
 const {admins} = require("./config");
 const numbers = require("./numbers");
@@ -295,6 +295,15 @@ bot.command("send", async (context) => {
   const matchs = regEx.exec(context.message.text);
   const message = matchs[2];
   const chatIds = await getAllChatIds();
+  informEveryone(chatIds, message);
+  return context.reply("Sent to everyone");
+});
+
+bot.command("sendToRegistered", async (context) => {
+  const regEx = new RegExp("^(/sendToRegistered) (.*)$");
+  const matchs = regEx.exec(context.message.text);
+  const message = matchs[2];
+  const chatIds = await getRegisteredChatIds();
   informEveryone(chatIds, message);
   return context.reply("Sent to everyone");
 });
