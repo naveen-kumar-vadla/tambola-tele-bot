@@ -57,6 +57,9 @@ const convertToTicket = (ticket) => {
           Markup.callbackButton("Claim️ column 🔝", `claim ${JSON.stringify({ticketId: ticket.id, claim: "thirdLine"})}`)
       ],
       [
+        Markup.callbackButton("Claim first five", `claim ${JSON.stringify({ticketId: ticket.id, claim: "firstFive"})}`)
+      ],
+      [
         Markup.callbackButton("Claim full housie", `claim ${JSON.stringify({ticketId: ticket.id, claim: "fullHousie"})}`)
       ]
   ]).extra();

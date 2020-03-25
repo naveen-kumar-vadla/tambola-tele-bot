@@ -153,6 +153,7 @@ const claimValidations = {
   firstLine: (ticket) => isValidLineClaim(ticket, 1),
   secondLine: (ticket) => isValidLineClaim(ticket, 2),
   thirdLine: (ticket) => isValidLineClaim(ticket, 3),
+  firstFive: (ticket) => isValidFirstFiveClaim(ticket),
   fullHousie: (ticket) => {
     return isValidLineClaim(ticket, 1) && isValidLineClaim(ticket, 2) && isValidLineClaim(ticket, 3);
   }
@@ -167,6 +168,16 @@ const updateWinner = (game, claim, playerId) => {
 
 const isValidLineClaim = (ticket, line) => {
   return ticket.cells[line - 1].every(cell => cell.marked || (cell.number == "0"));
+};
+
+const isValidFirstFiveClaim = (ticket) => {
+  let count = 0;
+  ticket.cells.forEach(row => row.forEach(cell => {
+    if(cell.marked) {
+      count++;
+    }
+  }));
+  return (count >= 5);
 };
 
 const findPlayer = (game, playerId) => {
