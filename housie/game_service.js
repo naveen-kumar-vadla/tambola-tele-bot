@@ -100,6 +100,7 @@ const getWinners = async () => {
   return `First line: ${winners.firstLine ? winners.firstLine.name : '-'}\n` +
         `Second line: ${winners.secondLine ? winners.secondLine.name : '-'}\n` +
         `Third line: ${winners.thirdLine ? winners.thirdLine.name : '-'}\n` +
+        `First Five: ${winners.firstFive ? winners.firstFive.name : '-'}\n` +
         `Full housie: ${winners.fullHousie ? winners.fullHousie.name : '-'}`;
 };
 

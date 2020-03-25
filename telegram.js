@@ -100,7 +100,7 @@ const claimActions = {
       const {from, answerCbQuery} = context;
       push(() => answerCbQuery("Congratulations"));
       const chatIds = await getAllChatIds();
-      const claims = {firstLine: "First Column", secondLine: "Second Column",  thirdLine: "Third Column", fullHousie: "Full Housie"};
+      const claims = {firstLine: "First Column", secondLine: "Second Column",  thirdLine: "Third Column", fullHousie: "Full Housie", firstFive: "First Five"};
       return informEveryone(chatIds, `Congratulations ${from.first_name} ${from.last_name || ''} for winning the ${claims[details.claim]}`);
     },
     FAILED: (details, context) => push(() => context.answerCbQuery("Not done yet!!! Check carefully."))
