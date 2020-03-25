@@ -311,7 +311,8 @@ bot.command("sendToRegistered", async (context) => {
   const regEx = new RegExp("^(/sendToRegistered) (.*)$");
   const matchs = regEx.exec(context.message.text);
   const message = matchs[2];
-  const chatIds = await getRegisteredNotConfirmedPlayers().map(player => player.chatId);
+  const registeredNotConfirmedPlayers = await getRegisteredNotConfirmedPlayers();
+  const chatIds =  registeredNotConfirmedPlayers.map(player => player.chatId);
   informEveryone(chatIds, message);
   return context.reply("Sent to everyone");
 });
