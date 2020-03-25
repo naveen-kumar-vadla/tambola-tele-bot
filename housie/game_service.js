@@ -148,6 +148,11 @@ const getBlockedChatIds = async () => {
   return blocked.ids;
 };
 
+const getAllRevealedNumbers = async () => {
+  let game = await db.find();
+  return JSON.stringify(game.revealed);
+};
+
 // Private
 const claimValidations = {
   firstLine: (ticket) => isValidLineClaim(ticket, 1),
@@ -239,4 +244,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, getBlockedChatIds, getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, getRegisteredChatIds, confirmPlayer, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};
+module.exports = {createGame, getBlockedChatIds, getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, getRegisteredChatIds, confirmPlayer, getAllRevealedNumbers, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};

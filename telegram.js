@@ -1,4 +1,4 @@
-const {createGame, getBlockedChatIds, getTicket, getTickets, getWinners, processClaim, getAllChatIds, getRegisteredChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {createGame, getBlockedChatIds, getTicket, getTickets, getWinners, processClaim, getAllRevealedNumbers, getAllChatIds, getRegisteredChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {push} = require("./telegram_queue");
 const {admins} = require("./config");
 const numbers = require("./numbers");
@@ -318,6 +318,11 @@ bot.command("sendTo", async (context) => {
   const message = matchs[3];
   push(() => telegram.sendMessage(to, message));
   return context.reply(`Sent to ${to}`);
+});
+
+bot.command("allRevealed", async (context) => {
+  const revealedNumbers = await getAllRevealedNumbers();
+  return push(() => context.reply(`All revealed numbers: ${revealedNumbers} `));
 });
 
 bot.catch((err) => {
