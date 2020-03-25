@@ -91,7 +91,7 @@ const onError = (context, err) => {
 
 const claimActions = {
     CLAIMED: (details, context) => push(() => {
-      context.answerCbQuery("Already someone claimed it. Look winners using /winners command");
+      context.answerCbQuery("Already someone claimed it. Use /winners command to see the winners.");
     }),
     SUCCESS: async (details, context) => {
       const {from, answerCbQuery} = context;
@@ -210,9 +210,14 @@ bot.action("cellMarked", async ({answerCbQuery}) => {
   return push(() => answerCbQuery("Shhh!"));
 });
 
+
 //Admin
 bot.use((context, next) => {
-  if(!admins.includes(context.from.id)) {
+  const {from} = context;
+  if(!admins.includes(from.id)) {
+    admins.forEach(admin => {
+      push(() => telegram.sendMessage(admin, `Message from ${from.id}-${from.first_name}: ${context.message.text}`));
+    });
     return;
   }
   return next();
