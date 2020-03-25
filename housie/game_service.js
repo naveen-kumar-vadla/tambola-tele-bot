@@ -123,8 +123,9 @@ const getAllChatIds = async () => {
   return game.players.map(player => player.chatId);
 };
 
-const getRegisteredChatIds = async () => {
-  return await getRegisteredPlayers().map(player => player.chatId);
+const getRegisteredNotConfirmedPlayers = async () => {
+  const allChatIds = await getAllChatIds();
+  return await getRegisteredPlayers().filter(id => !allChatIds.includes(id));
 };
 
 const getTickets = async (playerId) => {
@@ -245,4 +246,4 @@ const generateTicket = () => {
   }
 };
 
-module.exports = {createGame, getBlockedChatIds, getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, getRegisteredChatIds, confirmPlayer, getAllRevealedNumbers, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};
+module.exports = {createGame, getBlockedChatIds, getTicket, getGame, startGameAndGetChatIds, getAllChatIds, signup, getRegisteredPlayers, getRegisteredNotConfirmedPlayers, confirmPlayer, getAllRevealedNumbers, revealNumber, mark, getTickets, processClaim, getWinners, getConfirmedPlayers, deleteGame};

@@ -1,4 +1,4 @@
-const {createGame, getBlockedChatIds, getTicket, getTickets, getWinners, processClaim, getAllRevealedNumbers, getAllChatIds, getRegisteredChatIds, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const {createGame, getBlockedChatIds, getTicket, getTickets, getWinners, processClaim, getAllRevealedNumbers, getAllChatIds, getRegisteredNotConfirmedPlayers, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
 const {push} = require("./telegram_queue");
 const {admins} = require("./config");
 const numbers = require("./numbers");
@@ -80,9 +80,10 @@ const getNumber = (cell) => {
 };
 
 const convertPlayersToMessage = (players) => {
-  return players.map((player, index) => {
+  const message = players.map((player, index) => {
     return `${index+1}. ${player.id} - ${player.name} - ${player.tickets.length}`;
   }).join("\n");
+  return `Total: ${players.length} \n ${message}`;
 };
 
 const onError = (context, err) => {
@@ -236,8 +237,13 @@ bot.command("getUser", (context) => {
   });
 });
 
-bot.command("registered", async (context) => {
+bot.command("allRegistered", async (context) => {
   const players = await getRegisteredPlayers();
+  return push(() => context.reply(convertPlayersToMessage(players) || "Empty"));
+});
+
+bot.command("registered", async (context) => {
+  const players = await getRegisteredNotConfirmedPlayers();
   return push(() => context.reply(convertPlayersToMessage(players) || "Empty"));
 });
 
@@ -306,7 +312,7 @@ bot.command("sendToRegistered", async (context) => {
   const regEx = new RegExp("^(/sendToRegistered) (.*)$");
   const matchs = regEx.exec(context.message.text);
   const message = matchs[2];
-  const chatIds = await getRegisteredChatIds();
+  const chatIds = await getRegisteredNotConfirmedPlayers().map(player => player.chatId);
   informEveryone(chatIds, message);
   return context.reply("Sent to everyone");
 });
