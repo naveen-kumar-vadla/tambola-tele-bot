@@ -148,7 +148,7 @@ bot.help(({replyWithHTML}) => {
 //Player
 bot.command("example", ({replyWithPhoto}) => {
   return push(() => replyWithPhoto({
-    source: "./transposed-ticket.jpg"
+    source: "./transposed-ticket.png"
   }));
 });
 
