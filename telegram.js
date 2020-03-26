@@ -230,6 +230,7 @@ bot.command("getUser", (context) => {
   const regEx = new RegExp("^(/getUser) (\\d+)\$");
   const matchs = regEx.exec(context.message.text);
   telegram.getChat(matchs[2]).then((data) => {
+    console.log("Data->", data);
     telegram.getFileLink(data.photo.big_file_id).then((photoLink) => {
       context.reply({...data, photo: photoLink});
     });
