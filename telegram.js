@@ -22,7 +22,7 @@ let blockedChatIds = [];
 
 setTimeout(async () => {
   blockedChatIds = await getBlockedChatIds();
-}, 1000);
+}, 5000);
 
 // Private
 const informEveryone = (chatIds, message, options) => {
