@@ -10,7 +10,6 @@ const session = require('telegraf/session');
 const fs = require("fs");
 
 let BOT_TOKEN = process.env.BOT_TOKEN;
-const MONGO_DB_CONNECTION_URL = process.env.MONGO_DB_CONNECTION_URL;
 const bot = new Telegraf(BOT_TOKEN);
 const telegram = new Telegram(BOT_TOKEN);
 
@@ -20,8 +19,6 @@ const URL = process.env.URL || 'https://telegames.herokuapp.com/';
 bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
 bot.startWebhook(`/bot${BOT_TOKEN}`, null, PORT);
 let blockedChatIds = [];
-
-console.log("MONGO_DB_CONNECTION_URL", MONGO_DB_CONNECTION_URL);
 
 setTimeout(async () => {
   blockedChatIds = await getBlockedChatIds();

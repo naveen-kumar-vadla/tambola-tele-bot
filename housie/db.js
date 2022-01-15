@@ -57,8 +57,8 @@ const getBlockedUser = async () => {
   const collection = db.collection("blocked_users");
   const blocked = await collection.findOne();
   if(!blocked) {
-    collection.insertOne({ids: []});
-    return [];
+    collection.insertOne({ ids: [] });
+    return { ids:[] };
   }
   return blocked;
 };
