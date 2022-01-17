@@ -3,5 +3,5 @@
     "url": "mongodb://localhost:27017",
     "name": "housie"
   },
-  "admins": [1456374669]
+  "admins": [1456374669, 1444153057]
 }
