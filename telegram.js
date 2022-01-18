@@ -16,6 +16,9 @@ const telegram = new Telegram(BOT_TOKEN);
 const PORT = process.env.PORT || 3000;
 const URL = process.env.URL || 'https://telegames.herokuapp.com/';
 
+const TITLE = "ThoughtWorks Hyderabad Tambola 2022";
+const COST_PER_TICKET = "30";
+
 bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
 bot.startWebhook(`/bot${BOT_TOKEN}`, null, PORT);
 let blockedChatIds = [];
@@ -124,6 +127,11 @@ const actionOnInvalidAttempt = (invalidAttempts, chatId) => {
   return push(() => telegram.sendMessage(chatId, message));
 };
 
+const getHelpText = () => {
+  const html = fs.readFileSync('./help.html', 'utf-8');
+  return html.replace('__TITLE__', TITLE).replace('__COST_PER_TICKET__', COST_PER_TICKET);
+}
+
 // Private done.
 
 bot.use(session());
@@ -139,10 +147,10 @@ bot.use((context, next) => {
   return next();
 });
 bot.start(({replyWithHTML}) => {
-  return push(() => replyWithHTML(fs.readFileSync("./help.html", "utf-8")));
+  return push(() => replyWithHTML(getHelpText()));
 });
 bot.help(({replyWithHTML}) => {
-  return push(() => replyWithHTML(fs.readFileSync("./help.html", "utf-8")));
+  return push(() => replyWithHTML(getHelpText()));
 });
 
 //Player
