@@ -278,6 +278,25 @@ bot.command("confirm", async (context) => {
   return push(() => context.reply(`Confirmed player: ${playerId}`));
 });
 
+bot.command("viewTickets", async (context) => {
+  const regEx = new RegExp("^(/viewTickets) (\\d+)\$");
+  const matchs = regEx.exec(context.message.text);
+  if(!matchs) {
+    return push(() => context.reply("Player id is missing."));
+  }
+  const playerId = matchs[2];
+  const tickets = await getTickets(playerId);
+  if(tickets.error) {
+    return push(() => context.reply(tickets.error));
+  }
+  push(() => context.reply(`Here are ${playerId}'s ticket(s)...`));
+  return tickets.forEach((ticket, index) => {
+    push(() => {
+      telegram.sendMessage(context.chat.id, `Ticket ${index+1}`, convertToTicket(ticket));
+    });
+  });
+});
+
 bot.command('create', async (context) => {
   const created = await createGame().catch((err) => onError(context, err));
   return push(() => context.reply(created.result));
