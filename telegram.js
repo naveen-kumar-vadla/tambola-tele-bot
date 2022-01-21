@@ -1,4 +1,5 @@
 const {createGame, getBlockedChatIds, getTicket, getTickets, getWinners, processClaim, getAllRevealedNumbers, getAllChatIds, getRegisteredNotConfirmedPlayers, startGameAndGetChatIds, getGame, deleteGame, signup, getRegisteredPlayers, getConfirmedPlayers, revealNumber, confirmPlayer, mark} = require("./housie/game_service");
+const https = require('https');
 const {push} = require("./telegram_queue");
 const {admins} = require("./config");
 const numbers = require("./numbers");
@@ -15,6 +16,7 @@ const telegram = new Telegram(BOT_TOKEN);
 
 const PORT = process.env.PORT || 3000;
 const URL = process.env.URL || 'https://telegames.herokuapp.com/';
+const INTERVAL = (+process.env.INTERVAL) || 300000;
 
 const TITLE = "ThoughtWorks Hyderabad Tambola 2022";
 const COST_PER_TICKET = "30";
@@ -26,6 +28,16 @@ let blockedChatIds = [];
 setTimeout(async () => {
   blockedChatIds = await getBlockedChatIds();
 }, 5000);
+
+const pingServer = () => {
+  console.log(`${new Date().toString()} Ping Server`);
+  https.get(URL, (res) => {
+    console.log(`${new Date().toString()} Ping status: ${res.statusCode}`);
+    startPing();
+  });
+};
+
+const startPing = () => setTimeout(pingServer, INTERVAL);
 
 // Private
 const informEveryone = (chatIds, message, options) => {
@@ -367,3 +379,4 @@ bot.catch((err) => {
 });
 
 bot.launch();
+startPing();
